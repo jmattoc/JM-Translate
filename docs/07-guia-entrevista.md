@@ -5,7 +5,7 @@
 1. **VB-Cable instalado** y `models/mi-voz.wav` grabada si quieres usar tu timbre (ver docs/06).
 2. En **Frases**, escribe tus respuestas típicas en español (preséntate, tus proyectos, tus logros, por qué quieres el puesto) y pulsa **Traducir español → inglés**. **Lee y corrige el inglés**: lo que ahí quede es lo que se dirá.
 3. Elige la voz y decide si usas «Mi voz». Luego pulsa **Preparar todas**: así cada frase suena al instante y con calidad máxima.
-4. Cambia los nombres y el orden para que las nueve primeras sean las que más usarás (se disparan con el atajo del 1 al 9).
+4. Ordena con ▲ ▼ las frases que más usarás: la posición decide el atajo (p1·1 a p1·9 en la primera página, p2·1 en la segunda…). La ventana Frases muestra la etiqueta de cada una.
 
 ## 2. Diez minutos antes de cada entrevista
 
@@ -14,7 +14,7 @@
 - [ ] Abre JM-Translate y pulsa **Iniciar todo**. Espera a ver «✔ Puedes hablar».
 - [ ] En la plataforma de la reunión, micrófono = **CABLE Output**; altavoz = tus audífonos.
 - [ ] En «Ellos → yo», «Audio de la reunión» = tus audífonos; deja **sin marcar «Voz en español»** si vas a leer solo los subtítulos.
-- [ ] Prueba el audio con quien tengas a mano o con la frase **«Prueba de audio»** (Ctrl+Alt+Numpad9): comprueba que se oye claro y sin cortes.
+- [ ] Prueba el audio con quien tengas a mano o con la frase **«Prueba de audio»** (envíala desde la ventana Frases con «Enviar ahora»): comprueba que se oye claro y sin cortes.
 - [ ] Prepara **Compacto** (Ctrl+Alt+Numpad.) para tener solo el indicador y los subtítulos sobre la reunión.
 
 ## 3. Ajustes de audio de cada plataforma
@@ -43,7 +43,8 @@ La app ya nivela el volumen de lo que envía, pero estos ajustes del lado de la 
 
 | Atajo | Qué hace |
 |---|---|
-| Ctrl+Alt+Numpad1 … Numpad9 | Envía la frase 1 a 9 del banco (necesita Bloq Num activado) |
+| Ctrl+Alt+Numpad1 … Numpad9 | Envía la frase de esa tecla en la **página actual** del banco (necesita Bloq Num activado) |
+| Ctrl+Alt+Numpad+ | Cambia de página de atajos: la página 2 son las frases 10 a 18, y así. El botón «Frases» muestra la página (p1/4) |
 | Ctrl+Alt+Numpad0 | **Silencio de emergencia**: corta lo que suena y bloquea el envío; vuelve a pulsar para reanudar |
 | Ctrl+Alt+Numpad. | Modo compacto / normal |
 | Tecla de pulsar para hablar | Elegida en «Yo → ellos» (Ctrl derecho, Alt derecho, F8, F9, F10) |

@@ -36,6 +36,8 @@
 
         <DockPanel Grid.Column="0" Grid.Row="0">
             <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,8,0,0">
+                <Button x:Name="UpButton" Content="▲" ToolTip="Subir (cambia su atajo)" Click="MoveUp_Click" />
+                <Button x:Name="DownButton" Content="▼" ToolTip="Bajar (cambia su atajo)" Click="MoveDown_Click" />
                 <Button x:Name="NewButton" Content="Nueva" Click="NewButton_Click" />
                 <Button x:Name="DeleteButton" Content="Eliminar" Click="DeleteButton_Click" />
             </StackPanel>
@@ -72,7 +74,7 @@
                 <TextBlock x:Name="StatusText" Foreground="#FFA0A4AB" VerticalAlignment="Center" />
             </StackPanel>
             <TextBlock Foreground="#FF8A8F98" Margin="0,8,0,0" TextWrapping="Wrap"
-                       Text="Las nueve primeras se envían con Ctrl+Alt+Numpad1…9 (con Bloq Num activado), incluso con Teams, Zoom o Meet en primer plano. Se envían por el micrófono virtual con la voz elegida en la ventana principal; si cambias de voz o activas «Mi voz», hay que volver a preparar." />
+                       Text="El atajo depende de la posición: «p1·3» es la página 1, tecla 3. Ctrl+Alt+Numpad1…9 envía las frases de la página actual (con Bloq Num activado), y Ctrl+Alt+Numpad+ pasa a la página siguiente; el botón Frases de la ventana principal muestra en cuál estás. Funciona con Teams, Zoom o Meet en primer plano. Se envían por el micrófono virtual con la voz elegida en la ventana principal; si cambias de voz o activas «Mi voz», hay que volver a preparar." />
         </StackPanel>
     </Grid>
 </Window>

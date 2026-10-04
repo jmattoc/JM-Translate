@@ -136,7 +136,7 @@ internal static partial class SelfTest
         foreach (var clone in new[] { false, true }.Where(c => !c || Paths.VoiceSample is not null))
         {
             log($"=== frases con Piper john{(clone ? " + mi voz" : "")} ===");
-            foreach (var p in bank.Items)
+            foreach (var p in bank.Items.Where(x => x.En.Length > 0))
             {
                 var wasReady = audio.IsReady(p, john, clone);
                 var sw = Stopwatch.StartNew();

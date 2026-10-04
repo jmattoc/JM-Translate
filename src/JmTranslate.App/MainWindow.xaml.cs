@@ -17,7 +17,8 @@ public sealed class Line
 public partial class MainWindow : Window
 {
     private const int MaxLines = 10;
-    private const int HotkeyMute = 10, HotkeyCompact = 11;
+    private const int HotkeyMute = 10, HotkeyCompact = 11, HotkeyNextPage = 12;
+    private const int PageSize = 9;
     private static readonly Brush TheirsColor = Brushes.White;
     private static readonly Brush MineColor = new SolidColorBrush(System.Windows.Media.Color.FromRgb(0x7F, 0xD1, 0xFF));
 
@@ -51,6 +52,7 @@ public partial class MainWindow : Window
     private Size _normalSize;
     private int _phraseBusy;
     private double _speakPeak;
+    private int _phrasePage;     // página de atajos del banco (0 = frases 1 a 9)
 
     public MainWindow()
     {
@@ -145,6 +147,7 @@ public partial class MainWindow : Window
                 if (!_hotkeys.Register(i, mods, (uint)(0x60 + i))) failed.Add($"Numpad{i}");
             if (!_hotkeys.Register(HotkeyMute, mods, 0x60)) failed.Add("Numpad0");
             if (!_hotkeys.Register(HotkeyCompact, mods, 0x6E)) failed.Add("Numpad.");
+            if (!_hotkeys.Register(HotkeyNextPage, mods, 0x6B)) failed.Add("Numpad+");
             _hotkeys.Pressed += id => Dispatcher.Invoke(() => OnHotkey(id));
             if (failed.Count > 0) SetStatus("Atajos ocupados por otra aplicación: Ctrl+Alt+" + string.Join(", ", failed));
         }
@@ -156,6 +159,7 @@ public partial class MainWindow : Window
 
     private async void Window_Loaded(object sender, RoutedEventArgs e)
     {
+        UpdatePageLabel();
         if (_settings.Compact) ToggleCompact();
 
         // Se calienta el servicio de traducción al abrir, para que el primer uso no tenga que esperarlo.
@@ -173,9 +177,10 @@ public partial class MainWindow : Window
 
     private void OnHotkey(int id)
     {
-        if (id >= 1 && id <= 9) PlayPhraseAt(id - 1);
+        if (id >= 1 && id <= 9) PlayPhraseAt(_phrasePage * PageSize + id - 1);
         else if (id == HotkeyMute) ToggleMute();
         else if (id == HotkeyCompact) ToggleCompact();
+        else if (id == HotkeyNextPage) NextPage();
     }
 
     private void SaveSettings()
@@ -479,6 +484,31 @@ public partial class MainWindow : Window
     private void PlayPhraseAt(int index)
     {
         if (index < Bank.Items.Count) _ = PlayPhraseAsync(Bank.Items[index]);
+        else SetStatus($"No hay frase en ese atajo (página {_phrasePage + 1}).");
+    }
+
+    private int PageCount => Math.Max(1, (Bank.Items.Count + PageSize - 1) / PageSize);
+
+    /// <summary>Pasa a la página siguiente de atajos (Ctrl+Alt+Numpad+): la página 2 son las frases 10 a 18, y así.</summary>
+    private void NextPage()
+    {
+        _phrasePage = (_phrasePage + 1) % PageCount;
+        UpdatePageLabel();
+        var first = _phrasePage * PageSize;
+        var names = Bank.Items.Skip(first).Take(PageSize).Select((p, i) => $"{i + 1} {p.Label}");
+        SetStatus($"Página {_phrasePage + 1} de {PageCount}:  " + string.Join("  ·  ", names));
+    }
+
+    private void UpdatePageLabel() => BankButton.Content = PageCount > 1 ? $"Frases p{_phrasePage + 1}/{PageCount}" : "Frases";
+
+    /// <summary>Etiqueta del atajo de la frase en la posición dada: "p2·3" = página 2, tecla 3.</summary>
+    internal static string KeyLabel(int index) => $"p{index / PageSize + 1}·{index % PageSize + 1}";
+
+    /// <summary>Se llama al reordenar o editar el banco, para mantener la página actual dentro de rango.</summary>
+    internal void BankChanged()
+    {
+        _phrasePage = Math.Min(_phrasePage, PageCount - 1);
+        UpdatePageLabel();
     }
 
     /// <summary>Envía una frase preparada por el micrófono virtual (al instante si ya está en caché).</summary>

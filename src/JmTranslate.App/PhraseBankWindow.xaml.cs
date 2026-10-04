@@ -27,8 +27,8 @@ public partial class PhraseBankWindow : Window
         for (var i = 0; i < Bank.Items.Count; i++)
         {
             var p = Bank.Items[i];
-            var key = i < 9 ? $"{i + 1}" : "·";
-            List.Items.Add($"{key}  {p.Label}{(_main.IsPhraseReady(p) ? "  ✔" : "")}");
+            var pending = p.En.Length == 0 ? "  (por completar)" : _main.IsPhraseReady(p) ? "  ✔" : "";
+            List.Items.Add($"{MainWindow.KeyLabel(i)}  {p.Label}{pending}");
         }
         _loading = false;
         if (Bank.Items.Count > 0) List.SelectedIndex = Math.Min(keep, Bank.Items.Count - 1);
@@ -89,6 +89,23 @@ public partial class PhraseBankWindow : Window
         _current = null;
         Bank.Save();
         Refresh(select: Math.Max(0, index - 1));
+    }
+
+    private void MoveUp_Click(object sender, RoutedEventArgs e) => Move(-1);
+
+    private void MoveDown_Click(object sender, RoutedEventArgs e) => Move(+1);
+
+    /// <summary>Cambia la posición de la frase: la posición decide su atajo (p1·1 … p1·9, p2·1 …).</summary>
+    private void Move(int delta)
+    {
+        SaveFields();
+        var i = List.SelectedIndex;
+        var j = i + delta;
+        if (i < 0 || j < 0 || j >= Bank.Items.Count) return;
+        (Bank.Items[i], Bank.Items[j]) = (Bank.Items[j], Bank.Items[i]);
+        Bank.Save();
+        _main.BankChanged();
+        Refresh(select: j);
     }
 
     private void SaveButton_Click(object sender, RoutedEventArgs e)
