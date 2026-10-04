@@ -1,0 +1,19 @@
+# Modelos y entornos pesados: se descargan siguiendo docs/06-instalacion.md
+models/
+tools/.venv/
+tools/.uvcache/
+tools/python/
+tools/uv/
+tools/openvoice/
+tools/*.log
+tools/*.err
+
+# Datos personales y archivos de prueba (incluye mi-voz.wav y los audios generados)
+models/mi-voz.*
+scratch/
+
+# .NET / IDE
+bin/
+obj/
+*.user
+.vs/

@@ -1,0 +1,16 @@
+diff --git a/openvoice/api.py b/openvoice/api.py
+index 48f7eeb..3e3c9fb 100644
+--- a/openvoice/api.py
++++ b/openvoice/api.py
+@@ -100,9 +100,10 @@ class BaseSpeakerTTS(OpenVoiceBaseClass):
+ 
+ class ToneColorConverter(OpenVoiceBaseClass):
+     def __init__(self, *args, **kwargs):
++        enable_watermark = kwargs.pop('enable_watermark', True)
+         super().__init__(*args, **kwargs)
+ 
+-        if kwargs.get('enable_watermark', True):
++        if enable_watermark:
+             import wavmark
+             self.watermark_model = wavmark.load_model().to(self.device)
+         else:
