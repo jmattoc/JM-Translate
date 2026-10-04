@@ -12,7 +12,7 @@
 - [ ] Audífonos puestos (sin ellos, tu micrófono recoge la voz traducida y se arma un bucle).
 - [ ] Cierra otras aplicaciones pesadas: Teams, Zoom o Meet ya usan bastante procesador.
 - [ ] Abre JM-Translate y pulsa **Iniciar todo**. Espera a ver «✔ Puedes hablar».
-- [ ] En la plataforma de la reunión, micrófono = **CABLE Output**; altavoz = tus audífonos.
+- [ ] En la plataforma de la reunión, micrófono = **CABLE Output**; altavoz = tus audífonos. **Activa el micrófono una sola vez y déjalo abierto** toda la llamada: el cable solo lleva sonido cuando JM-Translate envía algo, así que no hace falta silenciar y reactivar en Teams, Zoom o Meet. Si la plataforma lo silencia al entrar, actívalo al comenzar.
 - [ ] En «Ellos → yo», «Audio de la reunión» = tus audífonos; deja **sin marcar «Voz en español»** si vas a leer solo los subtítulos.
 - [ ] Prueba el audio con quien tengas a mano o con la frase **«Prueba de audio»** (envíala desde la ventana Frases con «Enviar ahora»): comprueba que se oye claro y sin cortes.
 - [ ] Prepara **Compacto** (Ctrl+Alt+Numpad.) para tener solo el indicador y los subtítulos sobre la reunión.
@@ -62,3 +62,22 @@ La app ya nivela el volumen de lo que envía, pero estos ajustes del lado de la 
 - **Nada se graba:** ni audio ni texto de la reunión. Solo se guardan localmente tus ajustes, tus frases y su audio preparado (carpeta `data/`, fuera de Git).
 - **Antes de usar esto en una entrevista**, revisa las condiciones de la empresa: algunas piden confirmar que no usas asistentes de IA, y la traducción en vivo podría caer ahí. También puedes preguntar al reclutador si se permite una herramienta de apoyo de idioma. Esa decisión es tuya.
 - **El inglés del trabajo diario** tendrá que salir de ti. Esta herramienta te ayuda a llegar; conviene ir practicando en paralelo.
+
+## 8. Respuestas del banco sin buscarlas
+
+Tres formas, de menos a más automática. Se elige en «Ellos → yo» → «Respuestas del banco»:
+
+| Modo | Qué pasa cuando preguntan algo que está en tu banco |
+|---|---|
+| **Manual** | Nada: tú usas los atajos o la ventana Frases. |
+| **Sugerir** (recomendado) | Aparece un aviso azul con la respuesta que encaja: «Sugerencia: Preséntate (77 %)». **Ctrl+Alt+Enter** la envía; **Ctrl+Alt+\*** ofrece la siguiente opción. |
+| **Automático** | Si el parecido es muy alto y la opción es clara, se envía sola tras una **cuenta atrás de 2.5 s**. **Ctrl+Alt+\*** la cancela y **Ctrl+Alt+Enter** la envía ya. |
+
+El sistema compara por **significado**: «Walk me through your resume» activa «Preséntate» aunque la pregunta no esté escrita igual. Si nada encaja, no sugiere nada.
+
+**Cuidados del modo automático**
+- No envía nada mientras tú estés hablando, y espera si ellos siguen hablando.
+- En la ventana Frases, desmarca **«Permitir que se envíe sola»** en lo delicado. Vienen así por defecto: expectativa salarial, nivel de inglés y por qué cambiar.
+- Empieza con **Sugerir** en tus primeras entrevistas y pasa a Automático cuando confíes.
+
+**Comando de voz.** Di en español, con el micrófono normal: «**banco, saludo**», «banco, nube», «banco, disponibilidad», «banco translate gracias», o «banco, cinco» (la tecla 5 de la página actual). La frase sale y el comando **no se traduce**. Si no encuentra la respuesta, lo avisa en la barra de estado y tampoco la traduce. Cada frase admite sus propias palabras en la ventana Frases. Evita empezar frases normales con «banco».

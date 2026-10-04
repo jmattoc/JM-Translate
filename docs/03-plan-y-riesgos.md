@@ -135,3 +135,17 @@ Todo se probó con autopruebas sin interfaz (`JmTranslate.App.exe --pronunciatio
 Corrección encontrada en las pruebas: la limpieza de texto quitaba el espacio de " .NET" ("con.NET"); ya se conserva.
 
 Límite conocido: la prueba de estabilidad usa un audio sintético limpio. Con una persona hablando y el uso simultáneo de Teams, Zoom o Meet, la carga será mayor; conviene repetirla con una llamada real.
+
+## Iteración 6: respuestas automáticas del banco
+
+Objetivo: no buscar la respuesta a mano durante la entrevista.
+
+| Pieza | Cómo funciona | Resultado medido |
+|---|---|---|
+| **Sugerencia por significado** | La pregunta del entrevistador (ya reconocida) se compara con las preguntas típicas de cada respuesta usando all-MiniLM-L6-v2 (22 M de parámetros, ~90 MB, CPU) en el servicio local (`/match`, `tools/matcher.py`) | 95 % de acierto top-1 con 43 preguntas redactadas con otras palabras (`tools/match_eval.py`); ~10 ms por pregunta; frases ajenas ("Thanks for joining…", "Let me share my screen…") dan como máximo 0.45 de parecido |
+| **Umbrales** | Sugerir desde 0.50; enviar sola solo con ≥ 0.75 y una segunda opción al menos 0.15 peor | En 0.50: 38 aciertos, 1 error, 0 falsos positivos; con ≥ 0.75: 0 errores |
+| **Modo automático con cuenta atrás** | 2.5 s para cancelar (Ctrl+Alt+*), espera si ellos siguen hablando, no se envía si tú ya estás hablando, y cada frase puede marcarse «solo manual» (salario, inglés, por qué cambiar) | Probado con el banco real: las preguntas claras se enviarían solas; las dudosas quedan como sugerencia |
+| **Comando de voz** | «banco, saludo», «banco translate nube», «banco cinco» (tecla 5 de la página actual). Se detecta tras el reconocimiento y no se traduce | 20 de 20 casos correctos con el banco real, incluidas dos frases normales que NO deben tomarse como comando |
+| **Prueba de sugerencias con el banco real** | Autoprueba `--matchtest` | 18 de 18 correctas, con tres frases irrelevantes sin sugerencia |
+
+Riesgo conocido: una frase tuya que empiece por «banco» y sea corta podría tomarse como comando; por eso solo se interpreta si tiene como máximo unas pocas palabras tras la palabra clave.

@@ -44,6 +44,7 @@ Todos salvo los de traducción vienen de los lanzamientos de [sherpa-onnx](https
 | Voces en inglés (Piper) | `tts-models/vits-piper-en_US-john-medium.tar.bz2` y las que quieras (`ryan-medium`, `joe-medium`, `hfc_male-medium`, `lessac-medium`) | `vits-piper-en_US-*/` |
 | Voz en inglés natural (opcional) | `tts-models/kokoro-multi-lang-v1_0.tar.bz2` | `kokoro-multi-lang-v1_0/` |
 | Cambio de timbre | Hugging Face `myshell-ai/OpenVoiceV2` | `openvoice-v2/` |
+| Comparación por significado (sugerencias) | Hugging Face `sentence-transformers/all-MiniLM-L6-v2` (solo `*.json`, `*.txt`, `model.safetensors`, `1_Pooling/*`) | `minilm/` |
 
 Traducción (se convierte a CTranslate2 int8, desde `tools/`):
 

@@ -20,6 +20,7 @@ public enum Activity { Ready, Hearing, Processing, Speaking }
 /// <param name="Outputs">Dispositivos por donde sale la voz traducida (vacío = solo subtítulos).</param>
 /// <param name="CloneVoice">Se consulta en cada frase: true = pasar la voz por el timbre de mi-voz.</param>
 /// <param name="PushToTalk">Si existe, solo se captura mientras devuelva true; al pasar a false se envía de inmediato lo dicho.</param>
+/// <param name="Command">Si existe, recibe cada frase reconocida; si devuelve true era un comando de voz y no se traduce.</param>
 internal sealed record PipelineOptions(
     MMDevice Source,
     bool SourceIsLoopback,
@@ -27,7 +28,8 @@ internal sealed record PipelineOptions(
     TtsSpec Tts,
     IReadOnlyList<MMDevice> Outputs,
     Func<bool>? CloneVoice = null,
-    Func<bool>? PushToTalk = null);
+    Func<bool>? PushToTalk = null,
+    Func<string, bool>? Command = null);
 
 /// <summary>
 /// Pipeline genérico: audio → VAD → tramos → voz→texto → traducción → [subtítulos] → síntesis → [mi voz] → salida.
@@ -302,6 +304,7 @@ internal sealed class TranslationPipeline : IDisposable
                     _stt.Decode(stream);
                     var original = TextCleanup.Clean(stream.Result.Text.Trim());
                     if (original.Length < 2) continue;
+                    if (_opt.Command?.Invoke(original) == true) continue; // comando de voz («banco, saludo»): no se traduce
                     var sttMs = (long)Stopwatch.GetElapsedTime(sttStart).TotalMilliseconds;
 
                     var mtStart = Stopwatch.GetTimestamp();

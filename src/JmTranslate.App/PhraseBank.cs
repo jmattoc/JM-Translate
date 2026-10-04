@@ -10,6 +10,15 @@ public sealed class Phrase
     public string Label { get; set; } = "";
     public string Es { get; set; } = "";
     public string En { get; set; } = "";
+
+    /// <summary>Preguntas típicas del entrevistador (inglés) que activan esta respuesta; se comparan por significado.</summary>
+    public List<string> Questions { get; set; } = new();
+
+    /// <summary>Palabras para el comando de voz «banco, …» (español). Además del nombre de la frase.</summary>
+    public List<string> Aliases { get; set; } = new();
+
+    /// <summary>false = nunca se envía sola en modo automático (por ejemplo salario o nivel de inglés): solo se sugiere o se envía a mano.</summary>
+    public bool AutoSend { get; set; } = true;
 }
 
 /// <summary>

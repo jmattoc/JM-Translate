@@ -20,3 +20,7 @@ obj/
 
 # Datos personales: ajustes, banco de frases y audios preparados con tu voz
 data/
+
+# Python
+__pycache__/
+*.pyc

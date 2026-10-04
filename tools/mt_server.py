@@ -152,6 +152,25 @@ class VoiceCloner:
 CLONER = VoiceCloner()
 
 
+class LazyMatcher:
+    """Comparación por significado de la pregunta del entrevistador con las del banco (tools/matcher.py)."""
+
+    def __init__(self):
+        self.lock = threading.Lock()
+        self.matcher = None
+
+    def get(self):
+        with self.lock:
+            if self.matcher is None:
+                sys.path.insert(0, HERE)
+                from matcher import Matcher, default_path
+                self.matcher = Matcher(default_path())
+            return self.matcher
+
+
+MATCHER = LazyMatcher()
+
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, *args):
         pass
@@ -168,6 +187,17 @@ class Handler(BaseHTTPRequestHandler):
         self._send(200, "ok", "text/plain")
 
     def do_POST(self):
+        if self.path == "/match":
+            try:
+                n = int(self.headers.get("Content-Length", 0))
+                req = json.loads(self.rfile.read(n).decode("utf-8"))
+                t0 = time.perf_counter()
+                ranked = MATCHER.get().rank(req["query"], req["candidates"])
+                ms = int((time.perf_counter() - t0) * 1000)
+                self._send(200, json.dumps({"results": ranked[:5], "ms": ms}, ensure_ascii=False))
+            except Exception as e:  # noqa: BLE001
+                self._send(500, json.dumps({"error": str(e)}))
+            return
         if self.path == "/clone":
             try:
                 import numpy as np
@@ -200,5 +230,6 @@ if __name__ == "__main__":
                 if CLONER.conv is None:
                     CLONER._load()
         threading.Thread(target=_preload, daemon=True).start()
+    threading.Thread(target=MATCHER.get, daemon=True).start()  # carga el comparador mientras la app arranca
     print("ready", flush=True)
     ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()

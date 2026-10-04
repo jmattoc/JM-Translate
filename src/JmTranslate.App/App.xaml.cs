@@ -29,6 +29,11 @@ public partial class App : Application
             Shutdown(await (args[0] == "--pronunciation" ? SelfTest.PronunciationAsync(args[1]) : SelfTest.PhrasesAsync(args[1])));
             return;
         }
+        if (args.Length >= 2 && args[0] == "--matchtest")
+        {
+            Shutdown(await SelfTest.MatchAsync(args[1]));
+            return;
+        }
         if (args.Length >= 3 && args[0] == "--ptttest")
         {
             Shutdown(await SelfTest.PushToTalkAsync(args[1], args[2]));

@@ -29,7 +29,8 @@
         </Grid.RowDefinitions>
 
         <!-- Barra superior: ¿ya puedo hablar? + controles de emergencia -->
-        <Grid Grid.Row="0" Margin="0,0,0,10">
+        <StackPanel Grid.Row="0" Margin="0,0,0,10">
+        <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -53,6 +54,12 @@
             </StackPanel>
         </Grid>
 
+            <!-- Sugerencia de respuesta del banco para la pregunta que acaban de hacer -->
+            <Border x:Name="SuggestBorder" Visibility="Collapsed" Margin="0,8,0,0" Padding="12,8" CornerRadius="4" Background="#FF1F3A5F">
+                <TextBlock x:Name="SuggestText" FontSize="15" TextWrapping="Wrap" Foreground="White" />
+            </Border>
+        </StackPanel>
+
         <StackPanel Grid.Row="1" x:Name="ConfigPanel">
             <!-- ELLOS -> YO -->
             <Border BorderBrush="#FF2C3038" BorderThickness="1" Padding="10" Margin="0,0,0,8" CornerRadius="4">
@@ -75,6 +82,12 @@
                         <Button x:Name="ListenButton" Content="Escuchar" Width="100" Padding="0,5" Click="ListenButton_Click" />
                         <CheckBox x:Name="VoiceCheck" Content="Voz en español" IsChecked="True" Margin="16,0,0,0" VerticalAlignment="Center" Foreground="#FFE8E8E8" />
                         <CheckBox x:Name="OriginalCheck" Content="Mostrar texto original" IsChecked="True" Margin="14,0,0,0" VerticalAlignment="Center" Foreground="#FFE8E8E8" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                        <TextBlock Text="Respuestas del banco:" Foreground="#FFA0A4AB" VerticalAlignment="Center" Margin="0,0,6,0" />
+                        <ComboBox x:Name="ModeCombo" Width="230"
+                                  ToolTip="Sugerir: al oír una pregunta que encaja con el banco te muestra la respuesta; la envías con Ctrl+Alt+Enter. Automático: la envía sola tras una cuenta atrás que puedes cancelar con Ctrl+Alt+*." />
+                        <CheckBox x:Name="VoiceCmdCheck" Content="Comandos de voz («banco, saludo»)" IsChecked="True" Margin="16,0,0,0" VerticalAlignment="Center" Foreground="#FFE8E8E8" />
                     </StackPanel>
                 </StackPanel>
             </Border>

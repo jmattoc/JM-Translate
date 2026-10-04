@@ -41,6 +41,9 @@ public partial class PhraseBankWindow : Window
         LabelBox.Text = p?.Label ?? "";
         EsBox.Text = p?.Es ?? "";
         EnBox.Text = p?.En ?? "";
+        QuestionsBox.Text = p is null ? "" : string.Join(Environment.NewLine, p.Questions);
+        AliasesBox.Text = p is null ? "" : string.Join(Environment.NewLine, p.Aliases);
+        AutoSendCheck.IsChecked = p?.AutoSend ?? true;
         UpdateReadyText();
     }
 
@@ -53,12 +56,18 @@ public partial class PhraseBankWindow : Window
             : $"Sin preparar con «{voice.Label}»{(clone ? " y tu voz" : "")}: la primera vez tardará unos segundos.";
     }
 
+    private static List<string> Lines(string text) =>
+        text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+
     private void SaveFields()
     {
         if (_current is null) return;
         _current.Label = LabelBox.Text.Trim();
         _current.Es = EsBox.Text.Trim();
         _current.En = EnBox.Text.Trim();
+        _current.Questions = Lines(QuestionsBox.Text);
+        _current.Aliases = Lines(AliasesBox.Text);
+        _current.AutoSend = AutoSendCheck.IsChecked == true;
         Bank.Save();
     }
 

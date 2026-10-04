@@ -112,6 +112,7 @@ public partial class MainWindow : Window
         VoiceCheck.IsChecked = _settings.SpanishVoice;
         OriginalCheck.IsChecked = _settings.ShowOriginal;
         SendVoiceCheck.IsChecked = _settings.SendVoice;
+        InitSuggestions();
 
         if (Paths.VoiceSample is null)
         {
@@ -148,6 +149,8 @@ public partial class MainWindow : Window
             if (!_hotkeys.Register(HotkeyMute, mods, 0x60)) failed.Add("Numpad0");
             if (!_hotkeys.Register(HotkeyCompact, mods, 0x6E)) failed.Add("Numpad.");
             if (!_hotkeys.Register(HotkeyNextPage, mods, 0x6B)) failed.Add("Numpad+");
+            if (!_hotkeys.Register(HotkeyConfirm, mods, 0x0D)) failed.Add("Enter");
+            if (!_hotkeys.Register(HotkeyNextSuggestion, mods, 0x6A)) failed.Add("Numpad*");
             _hotkeys.Pressed += id => Dispatcher.Invoke(() => OnHotkey(id));
             if (failed.Count > 0) SetStatus("Atajos ocupados por otra aplicación: Ctrl+Alt+" + string.Join(", ", failed));
         }
@@ -181,6 +184,8 @@ public partial class MainWindow : Window
         else if (id == HotkeyMute) ToggleMute();
         else if (id == HotkeyCompact) ToggleCompact();
         else if (id == HotkeyNextPage) NextPage();
+        else if (id == HotkeyConfirm) ConfirmSuggestion();
+        else if (id == HotkeyNextSuggestion) NextSuggestion();
     }
 
     private void SaveSettings()
@@ -199,6 +204,8 @@ public partial class MainWindow : Window
         _settings.PushToTalk = _pttEnabled;
         _settings.PushToTalkKey = Name(PttKeyCombo);
         _settings.Compact = _compact;
+        _settings.AnswerMode = _answerMode;
+        _settings.VoiceCommands = _voiceCommandsOn;
         _settings.Save();
     }
 
@@ -228,6 +235,7 @@ public partial class MainWindow : Window
         {
             _phrasePlayer.Clear();
             _talk?.ClearPlayback();
+            ClearSuggestion();
         }
         MuteButton.Content = _muted ? "Reanudar" : "Silenciar";
         SetStatus(_muted ? "SILENCIO: no se envía nada hasta que reanudes." : "Envío reanudado.");
@@ -366,7 +374,7 @@ public partial class MainWindow : Window
         var spanishVoice = new TtsSpec("Piper · es_MX ald", "piper", "vits-piper-es_MX-ald-medium", "es_MX-ald-medium", 0);
         var options = new PipelineOptions(capture, true, "en-es", spanishVoice, outputs);
 
-        _listen = await StartPipelineAsync(ListenButton, options, TheirsColor);
+        _listen = await StartPipelineAsync(ListenButton, options, TheirsColor, OnTheirUtterance);
         if (_listen is not null)
         {
             ListenButton.Content = "Detener";
@@ -392,7 +400,8 @@ public partial class MainWindow : Window
 
         var options = new PipelineOptions(mic, false, "es-en", _voices[VoiceCombo.SelectedIndex], outputs,
             CloneVoice: () => Dispatcher.Invoke(() => CloneCheck.IsChecked == true),
-            PushToTalk: () => !_pttEnabled || NativeKeys.IsDown(_pttVk));
+            PushToTalk: () => !_pttEnabled || NativeKeys.IsDown(_pttVk),
+            Command: HandleVoiceCommand);
 
         _talk = await StartPipelineAsync(TalkButton, options, MineColor);
         if (_talk is not null)
@@ -403,7 +412,8 @@ public partial class MainWindow : Window
         }
     }
 
-    private async Task<TranslationPipeline?> StartPipelineAsync(Button button, PipelineOptions options, Brush color)
+    private async Task<TranslationPipeline?> StartPipelineAsync(Button button, PipelineOptions options, Brush color,
+        Action<Utterance>? onUtterance = null)
     {
         button.IsEnabled = false;
         try
@@ -413,7 +423,7 @@ public partial class MainWindow : Window
 
             SetStatus("Cargando modelos de voz…");
             var pipeline = await Task.Run(() => new TranslationPipeline(_mt, options));
-            pipeline.Heard += u => Dispatcher.Invoke(() => OnHeard(u, color));
+            pipeline.Heard += u => Dispatcher.Invoke(() => { OnHeard(u, color); onUtterance?.Invoke(u); });
             pipeline.Status += s => Dispatcher.Invoke(() => SetStatus(s));
             pipeline.Start();
             return pipeline;

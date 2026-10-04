@@ -53,6 +53,18 @@ internal sealed class MtSidecar : IDisposable
         return doc.RootElement.GetProperty("text").GetString() ?? "";
     }
 
+    /// <summary>Compara una pregunta con las preguntas típicas de cada candidato, por significado. Devuelve (id, parecido 0..1) de mayor a menor.</summary>
+    public async Task<List<(string Id, double Score)>> MatchAsync(string query, IEnumerable<(string Id, IReadOnlyList<string> Texts)> candidates)
+    {
+        var payload = new { query, candidates = candidates.Select(c => new { id = c.Id, texts = c.Texts }) };
+        var body = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+        using var resp = await _http.PostAsync("/match", body);
+        resp.EnsureSuccessStatusCode();
+        using var doc = JsonDocument.Parse(await resp.Content.ReadAsStringAsync());
+        return doc.RootElement.GetProperty("results").EnumerateArray()
+            .Select(r => (r.GetProperty("id").GetString() ?? "", r.GetProperty("score").GetDouble())).ToList();
+    }
+
     /// <summary>Cambia el timbre de la voz sintética por el de models/mi-voz.*. Tarda ~0.65× la duración del audio.</summary>
     public async Task<float[]> CloneAsync(float[] samples, int sampleRate, string voiceId)
     {

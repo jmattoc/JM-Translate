@@ -1,7 +1,7 @@
 <Window x:Class="JmTranslate.App.PhraseBankWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Banco de frases" Width="960" Height="620" MinWidth="760" MinHeight="480"
+        Title="Banco de frases" Width="980" Height="780" MinWidth="780" MinHeight="520"
         Background="#FF16181D" Foreground="#FFE8E8E8" Topmost="True">
     <Window.Resources>
         <Style TargetType="TextBox">
@@ -55,6 +55,15 @@
 
                 <TextBlock Text="Lo que se dirá (inglés) — revísalo y corrígelo antes de preparar" Style="{StaticResource Label}" />
                 <TextBox x:Name="EnBox" Height="130" />
+
+                <TextBlock Text="Preguntas típicas del entrevistador (inglés, una por línea) — así se sugiere esta respuesta" Style="{StaticResource Label}" />
+                <TextBox x:Name="QuestionsBox" Height="96" />
+
+                <TextBlock Text="Palabras para el comando de voz «banco, …» (una por línea; además del nombre)" Style="{StaticResource Label}" />
+                <TextBox x:Name="AliasesBox" Height="64" />
+
+                <CheckBox x:Name="AutoSendCheck" Margin="0,12,0,0" Foreground="#FFE8E8E8"
+                          Content="Permitir que se envíe sola en modo «Automático» (desmárcala para temas delicados: salario, inglés…)" />
 
                 <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
                     <Button x:Name="TranslateButton" Content="Traducir español → inglés" Click="TranslateButton_Click" />

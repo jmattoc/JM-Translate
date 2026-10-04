@@ -13,6 +13,7 @@
 | 7 | GPU moderna | Inversión, a tu criterio |
 | 8 | Glosario ampliado | **Hecho** y editable (`tools/glossary.json`); falta cargar los términos de cada oferta |
 | 9 | Pronunciación de siglas | **Hecho con reglas por motor y solo casos verificados**; una regla general empeoraba algunos casos |
+| – | Respuestas del banco sin buscarlas (sugerencia por significado, envío automático con cuenta atrás, comando de voz) | **Hecho** (18/18 y 20/20 en pruebas con el banco real) |
 | 10–12 | Contexto entre frases, modo calidad, aprendizaje del glosario | Pendiente |
 | 13 | Ventana compacta | **Hecho** (Ctrl+Alt+Numpad.) |
 | 14 | Perfiles por aplicación | Pendiente (se recuerdan los últimos ajustes) |

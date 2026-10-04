@@ -247,3 +247,92 @@ internal static partial class SelfTest
         log($"   memoria app: {startMem} → {proc.WorkingSet64 / 1_048_576} MB; python: {startPy} → {PythonMb()} MB");
     });
 }
+
+internal static partial class SelfTest
+{
+    // ─────────────────────────── comandos de voz y sugerencias ───────────────────────────
+
+    /// <summary>Prueba con el banco real: interpretación de comandos de voz y sugerencias a partir de preguntas.</summary>
+    public static Task<int> MatchAsync(string reportPath) => Harness(reportPath, async log =>
+    {
+        var bank = new PhraseBank();
+        log($"Banco: {bank.Items.Count} entradas.");
+
+        log("=== Comandos de voz ===");
+        // (lo que reconocería el micrófono, entrada esperada o null si no es comando / no existe)
+        var commands = new (string Heard, string? Expect)[]
+        {
+            ("Banco, saludo.", "Saludo"),
+            ("Banco translate saludo", "Saludo"),
+            ("Banco, preséntate.", "Preséntate"),
+            ("Banco presentación", "Preséntate"),
+            ("Banco, nube.", "Nube y pipelines"),
+            ("Banco, devops", "DevOps"),
+            ("Banco, SQL.", "SQL Server"),
+            ("Banco, disponibilidad", "Disponibilidad inmediata"),
+            ("Banco, dame la disponibilidad", "Disponibilidad inmediata"),
+            ("Banco, proyecto OCR", "Proyecto destacado (OCR y PDF)"),
+            ("Banco, salario", "Expectativa salarial"),
+            ("Frase gracias", "Gracias"),
+            ("Respuesta, zona horaria", "Zona horaria"),
+            ("Banco, inglés", "Nivel de inglés"),
+            ("Banco, no te escuche", "No te escuché"),
+            ("Banco, cinco", "#5"),
+            ("Banco, ocho.", "#8"),
+            ("Banco, cosa que no existe", "(sin coincidencia)"),
+            ("Banco de datos es una tecnología muy usada en las empresas grandes.", null),   // frase normal: se traduce
+            ("Trabajo con SQL Server y .NET.", null),                                         // frase normal
+        };
+        int ok = 0;
+        foreach (var (heard, expect) in commands)
+        {
+            var cmd = VoiceCommands.Parse(heard, bank.Items);
+            var got = !cmd.IsCommand ? null : cmd.Phrase?.Label ?? (cmd.Number is int n ? $"#{n}" : "(sin coincidencia)");
+            var pass = got == expect;
+            if (pass) ok++;
+            log($"{(pass ? "OK " : "XX ")} «{heard}»  → {(got ?? "se traduce normal")}   (esperado: {expect ?? "se traduce normal"})");
+        }
+        log($"Comandos: {ok}/{commands.Length} correctos.");
+
+        log("=== Sugerencias a partir de la pregunta del entrevistador ===");
+        using var mt = new MtSidecar();
+        await mt.StartAsync(CancellationToken.None);
+        var questions = new (string Q, string? Expect)[]
+        {
+            ("So, could you tell me a bit about yourself?", "Preséntate"),
+            ("What would you say are your strongest skills?", "Fortalezas"),
+            ("How long have you been using .NET?", ".NET y arquitectura limpia"),
+            ("Which cloud platforms have you worked on?", "Nube y pipelines"),
+            ("Do you have experience with DevOps and automation?", "DevOps"),
+            ("How many years have you been working as a developer?", "Años de experiencia"),
+            ("Have you ever worked on a document scanning or OCR project?", "Proyecto destacado (OCR y PDF)"),
+            ("When would you be able to start?", "Disponibilidad inmediata"),
+            ("How do you secure your web APIs?", "APIs REST y JWT"),
+            ("Do you also know Java?", "Java y Spring Boot"),
+            ("How would you speed up a slow database query?", "Consulta lenta"),
+            ("How good is your English?", "Nivel de inglés"),
+            ("What are you looking for in your next role?", "Por qué este puesto"),
+            ("What's your expected salary?", "Expectativa salarial"),
+            ("Do you have any questions for me?", "Preguntas para ellos"),
+            ("Thanks for joining the call today.", null),
+            ("Let me share my screen for a second.", null),
+            ("Our team is based in Austin and in Berlin.", null),
+        };
+        int good = 0;
+        foreach (var (q, expect) in questions)
+        {
+            var ranked = await PhraseMatcher.SuggestAsync(mt, bank, q);
+            var top = ranked.FirstOrDefault();
+            var shown = top is not null && top.Score >= PhraseMatcher.SuggestMin ? top : null;
+            var got = shown?.Phrase.Label;
+            var pass = got == expect;
+            if (pass) good++;
+            var margin = ranked.Count > 1 && top is not null ? top.Score - ranked[1].Score : 0;
+            var auto = shown is not null && shown.Score >= PhraseMatcher.AutoMin && margin >= PhraseMatcher.AutoMargin;
+            log($"{(pass ? "OK " : "XX ")} «{q}»\n       → {(got ?? "sin sugerencia")}" +
+                (top is null ? "" : $"  ({top.Score:P0}, margen {margin:P0}){(auto ? "  [se enviaría sola]" : "")}") +
+                $"   (esperado: {expect ?? "sin sugerencia"})");
+        }
+        log($"Sugerencias: {good}/{questions.Length} correctas.");
+    });
+}

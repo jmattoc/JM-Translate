@@ -18,6 +18,8 @@ internal sealed class Settings
     public bool PushToTalk { get; set; }
     public string? PushToTalkKey { get; set; }
     public bool Compact { get; set; }
+    public int AnswerMode { get; set; } = 1;
+    public bool VoiceCommands { get; set; } = true;
 
     private static string FilePath => Path.Combine(Paths.Data, "settings.json");
 
