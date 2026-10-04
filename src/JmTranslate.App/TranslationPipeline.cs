@@ -13,25 +13,21 @@ public sealed record Utterance(string Original, string Translation, double Laten
 /// <summary>Estado del pipeline de salida, para decirle al usuario cuándo puede seguir hablando.</summary>
 public enum Activity { Ready, Hearing, Processing, Speaking }
 
-/// <param name="Label">Nombre para mostrar y para distinguir la voz base (el timbre clonado depende de ella).</param>
-/// <param name="Kind">"piper" o "kokoro".</param>
-/// <param name="Dir">Carpeta del modelo dentro de models.</param>
-/// <param name="Model">Piper: nombre del .onnx sin extensión. Kokoro: no se usa.</param>
-/// <param name="Sid">Piper: 0. Kokoro: número de voz.</param>
-internal sealed record TtsSpec(string Label, string Kind, string Dir, string Model, int Sid);
-
 /// <param name="Source">Dispositivo de origen: de salida (loopback) o un micrófono.</param>
 /// <param name="SourceIsLoopback">true = capturar lo que suena en ese dispositivo.</param>
 /// <param name="MtPair">Par de traducción: "en-es" o "es-en".</param>
 /// <param name="Tts">Voz sintética del idioma destino.</param>
 /// <param name="Outputs">Dispositivos por donde sale la voz traducida (vacío = solo subtítulos).</param>
+/// <param name="CloneVoice">Se consulta en cada frase: true = pasar la voz por el timbre de mi-voz.</param>
+/// <param name="PushToTalk">Si existe, solo se captura mientras devuelva true; al pasar a false se envía de inmediato lo dicho.</param>
 internal sealed record PipelineOptions(
     MMDevice Source,
     bool SourceIsLoopback,
     string MtPair,
     TtsSpec Tts,
     IReadOnlyList<MMDevice> Outputs,
-    Func<bool>? CloneVoice = null);
+    Func<bool>? CloneVoice = null,
+    Func<bool>? PushToTalk = null);
 
 /// <summary>
 /// Pipeline genérico: audio → VAD → tramos → voz→texto → traducción → [subtítulos] → síntesis → [mi voz] → salida.
@@ -103,7 +99,7 @@ internal sealed class TranslationPipeline : IDisposable
         sttCfg.ModelConfig.Provider = "cpu";
         _stt = new OfflineRecognizer(sttCfg);
 
-        _tts = CreateTts(opt.Tts);
+        _tts = TtsFactory.Create(opt.Tts);
 
         var vadCfg = new VadModelConfig();
         vadCfg.SileroVad.Model = Path.Combine(Paths.Models, "silero_vad.onnx");
@@ -128,31 +124,6 @@ internal sealed class TranslationPipeline : IDisposable
         };
         _resampler = new WdlResamplingSampleProvider(_monoBuffer.ToSampleProvider(), VadRate);
         _capture.DataAvailable += OnAudio;
-    }
-
-    private static OfflineTts CreateTts(TtsSpec spec)
-    {
-        var dir = Path.Combine(Paths.Models, spec.Dir);
-        var cfg = new OfflineTtsConfig();
-        if (spec.Kind == "kokoro")
-        {
-            cfg.Model.Kokoro.Model = Path.Combine(dir, "model.onnx");
-            cfg.Model.Kokoro.Voices = Path.Combine(dir, "voices.bin");
-            cfg.Model.Kokoro.Tokens = Path.Combine(dir, "tokens.txt");
-            cfg.Model.Kokoro.DataDir = Path.Combine(dir, "espeak-ng-data");
-            cfg.Model.Kokoro.DictDir = Path.Combine(dir, "dict");
-            cfg.Model.Kokoro.Lexicon = Path.Combine(dir, "lexicon-us-en.txt") + "," + Path.Combine(dir, "lexicon-zh.txt");
-            cfg.Model.NumThreads = 4;
-        }
-        else
-        {
-            cfg.Model.Vits.Model = Path.Combine(dir, spec.Model + ".onnx");
-            cfg.Model.Vits.Tokens = Path.Combine(dir, "tokens.txt");
-            cfg.Model.Vits.DataDir = Path.Combine(dir, "espeak-ng-data");
-            cfg.Model.NumThreads = 2;
-        }
-        cfg.Model.Provider = "cpu";
-        return new OfflineTts(cfg);
     }
 
     public void Start()
@@ -183,8 +154,22 @@ internal sealed class TranslationPipeline : IDisposable
         return (_hearing ? Activity.Hearing : Activity.Ready, 0);
     }
 
+    /// <summary>Silencio de emergencia: mientras esté activo no se sintetiza ni se envía nada.</summary>
+    public bool Muted { get; set; }
+
+    /// <summary>Corta ahora mismo la voz que esté sonando o en cola.</summary>
+    public void ClearPlayback()
+    {
+        foreach (var p in _players) p.Clear();
+    }
+
+    private bool _pttWasHeld;
+
     private void OnAudio(object? sender, WaveInEventArgs e)
     {
+        // Pulsar para hablar: fuera de la tecla no se captura nada.
+        if (_opt.PushToTalk is { } held && !held()) return;
+
         // Mientras suena nuestra propia voz por el mismo dispositivo, se ignora la captura.
         if (_echoRisk)
         {
@@ -225,6 +210,19 @@ internal sealed class TranslationPipeline : IDisposable
                 DrainVadLocked();
             }
             CheckFlushLocked();
+
+            // Al soltar la tecla de "pulsar para hablar" se envía de inmediato lo dicho, sin esperar pausas.
+            if (_opt.PushToTalk is { } held)
+            {
+                var down = held();
+                if (_pttWasHeld && !down)
+                {
+                    _vad.Flush();
+                    DrainVadLocked();
+                    CheckFlushLocked(force: true);
+                }
+                _pttWasHeld = down;
+            }
         }
     }
 
@@ -240,13 +238,14 @@ internal sealed class TranslationPipeline : IDisposable
         }
     }
 
-    private void CheckFlushLocked()
+    private void CheckFlushLocked(bool force = false)
     {
         _hearing = _acc.Count > 0 || _vad.IsSpeechDetected();
         if (_acc.Count == 0) return;
         var accSeconds = _acc.Count / (double)VadRate;
         var silence = VadMinSilence + Stopwatch.GetElapsedTime(_lastSegTicks).TotalSeconds;
-        if (accSeconds < MinChunkSeconds && silence < EndpointSeconds) return;
+        if (force && accSeconds < 0.3) { _acc.Clear(); return; } // un toque accidental de la tecla
+        if (!force && accSeconds < MinChunkSeconds && silence < EndpointSeconds) return;
 
         var chunk = _acc.ToArray();
         _acc.Clear();
@@ -389,27 +388,32 @@ internal sealed class TranslationPipeline : IDisposable
                 // siguientes se preparan mientras tanto, así no se espera a la frase completa ni quedan silencios largos.
                 long ttsMs = 0, cloneMs = 0;
                 double? firstAudioAt = null;
+                var targetIsEnglish = _opt.MtPair == "es-en";
                 foreach (var piece in SplitForSpeech(item.Translated))
                 {
+                    if (Muted) break;
                     var ttsStart = Stopwatch.GetTimestamp();
-                    var audio = _tts.Generate(piece, 1.0f, _opt.Tts.Sid);
+                    // Las siglas se "deletrean" para el motor de voz; los subtítulos conservan el texto original.
+                    var audio = _tts.Generate(targetIsEnglish ? Pronunciation.ForEnglish(piece, _opt.Tts.Kind) : piece, 1.0f, _opt.Tts.Sid);
                     ttsMs += (long)Stopwatch.GetElapsedTime(ttsStart).TotalMilliseconds;
                     var voice = audio.Samples;
 
                     if (_opt.CloneVoice?.Invoke() == true)
                     {
                         var cloneStart = Stopwatch.GetTimestamp();
-                        try { voice = _mt.CloneAsync(voice, audio.SampleRate, $"{_opt.Tts.Kind}-{_opt.Tts.Dir}-{_opt.Tts.Sid}").GetAwaiter().GetResult(); }
+                        try { voice = _mt.CloneAsync(voice, audio.SampleRate, _opt.Tts.VoiceId).GetAwaiter().GetResult(); }
                         catch (Exception ex) { Status?.Invoke("No se pudo usar mi voz, se usa la voz estándar: " + ex.Message); }
                         cloneMs += (long)Stopwatch.GetElapsedTime(cloneStart).TotalMilliseconds;
                     }
+                    if (Muted) break;
                     foreach (var p in _players) p.Enqueue(voice);
                     firstAudioAt ??= Stopwatch.GetElapsedTime(item.Ticks).TotalSeconds;
                 }
 
-                Status?.Invoke($"La voz empieza a los {firstAudioAt:F1} s " +
-                               $"(voz→texto {item.SttMs} ms, traducción {item.MtMs} ms, síntesis {ttsMs} ms" +
-                               (cloneMs > 0 ? $", mi voz {cloneMs} ms)" : ")"));
+                if (firstAudioAt is not null)
+                    Status?.Invoke($"La voz empieza a los {firstAudioAt:F1} s " +
+                                   $"(voz→texto {item.SttMs} ms, traducción {item.MtMs} ms, síntesis {ttsMs} ms" +
+                                   (cloneMs > 0 ? $", mi voz {cloneMs} ms)" : ")"));
                 Interlocked.Decrement(ref _inFlight);
             }
         }

@@ -9,7 +9,7 @@ namespace JmTranslate.App;
 /// Autoprueba de extremo a extremo (sin interfaz): reproduce un audio en inglés por la salida predeterminada,
 /// lo captura con el pipeline "ellos → yo" y escribe lo que entendió, su traducción y los tiempos.
 /// </summary>
-internal static class SelfTest
+internal static partial class SelfTest
 {
     /// <param name="spanishToEnglish">true = prueba "yo → ellos": el audio es español y se sintetiza inglés (Kokoro, y tu voz si existe mi-voz).</param>
     public static async Task<int> RunAsync(string wavPath, string reportPath, bool spanishToEnglish = false)

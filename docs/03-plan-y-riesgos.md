@@ -118,3 +118,20 @@ Cambios aplicados:
 - **Reglas es→en:** el condicional sin sujeto ("Diseñaría…") sale como "I would…" en vez de "It would…" o un verbo suelto.
 
 Límites conocidos: el pretérito de verbos poco frecuentes puede salir en futuro ("Lideré" → "I'll handle…"); se mitiga con el glosario, no se resuelve del todo con este modelo.
+
+## Iteración 5: preparación para entrevistas
+
+Todo se probó con autopruebas sin interfaz (`JmTranslate.App.exe --pronunciation|--phrases|--ptttest|--soak`), reproduciendo audio por el cable virtual para no sonar por los altavoces.
+
+| Mejora | Resultado medido |
+|---|---|
+| **Banco de frases** con audio en caché | 9 frases preparadas en 70–1200 ms cada una y reconocidas correctamente al volver a transcribirlas. Con tu timbre se conservan, con un caso de menor claridad ("Sorry, I didn't catch that. But you say it again."). |
+| **Pulsar para hablar** | Sin la tecla: 0 frases captadas. Con la tecla y al soltarla: la frase llega 0.5 s después. |
+| **Silencio de emergencia** y **modo compacto** | Implementados; los 11 atajos globales (Ctrl+Alt+Numpad0…9 y Numpad.) quedan registrados al abrir la app. |
+| **Nivelación de volumen** | Cada frase enviada se normaliza (RMS ≈ -18 dBFS, pico ≤ 0.9) para que el control automático de ganancia de Teams/Zoom/Meet no la recorte. |
+| **Pronunciación de siglas** | Una lista general **empeoraba** varios casos ("A P I" se leía "app I", "g R P C" se leía "N G R P C"). Se reemplazó por reglas **por motor de voz** y solo para casos verificados con `tools/pron_variants.py`. |
+| **Prueba de estabilidad de 10 min** (Kokoro + tu voz, 111 frases) | 0 alertas; la voz empieza a los **1.5 s de mediana** (p95 1.7 s, máx. 2.0 s); memoria estable (app 1.2→1.3 GB, Python 2.1→2.0 GB, sin fugas); CPU de la app ~10 %. |
+
+Corrección encontrada en las pruebas: la limpieza de texto quitaba el espacio de " .NET" ("con.NET"); ya se conserva.
+
+Límite conocido: la prueba de estabilidad usa un audio sintético limpio. Con una persona hablando y el uso simultáneo de Teams, Zoom o Meet, la carga será mayor; conviene repetirla con una llamada real.

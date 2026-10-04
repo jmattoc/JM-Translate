@@ -28,6 +28,7 @@ internal sealed class SpeechPlayer : IDisposable
 
     public void Enqueue(float[] samples)
     {
+        samples = AudioLevel.Normalize(samples);
         var bytes = new byte[samples.Length * sizeof(float)];
         Buffer.BlockCopy(samples, 0, bytes, 0, bytes.Length);
         _buffer.AddSamples(bytes, 0, bytes.Length);

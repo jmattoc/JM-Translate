@@ -17,3 +17,6 @@ bin/
 obj/
 *.user
 .vs/
+
+# Datos personales: ajustes, banco de frases y audios preparados con tu voz
+data/

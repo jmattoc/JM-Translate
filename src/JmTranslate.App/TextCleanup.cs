@@ -42,7 +42,7 @@ internal static partial class TextCleanup
             text = Regex.Replace(text, @"\b" + Regex.Escape(wrong) + @"\b", right, RegexOptions.IgnoreCase);
 
         text = Regex.Replace(text, @"\s{2,}", " ");
-        text = Regex.Replace(text, @"\s+([.,?!])", "$1");
+        text = Regex.Replace(text, @"\s+([.,?!])(?=\s|$)", "$1"); // no toca " .NET"
         text = text.Trim().TrimStart(',', '.', ' ').TrimEnd(',', ' ');
         if (text.Length > 0) text = char.ToUpperInvariant(text[0]) + text[1..];
         return text;

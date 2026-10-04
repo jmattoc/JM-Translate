@@ -16,6 +16,7 @@ Traducción de voz bidireccional en vivo **Español ↔ Inglés** para entrevist
 | [docs/04-mejoras.md](docs/04-mejoras.md) | Lista priorizada de mejoras |
 | [docs/05-plataformas.md](docs/05-plataformas.md) | Mac, Android y arquitectura de servidor |
 | [docs/06-instalacion.md](docs/06-instalacion.md) | Cómo reconstruir el entorno y los modelos desde cero |
+| [docs/07-guia-entrevista.md](docs/07-guia-entrevista.md) | Guía práctica para usarlo en una entrevista: preparación, atajos y plan B |
 
 ## Estado
 

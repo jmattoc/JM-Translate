@@ -7,6 +7,10 @@ internal static class Paths
     public static string Models => Path.Combine(Root, "models");
     public static string Tools => Path.Combine(Root, "tools");
 
+    /// <summary>Datos personales locales (ajustes, banco de frases, audios en caché). Está fuera de git.</summary>
+    public static string Data => Directory.CreateDirectory(Path.Combine(Root, "data")).FullName;
+    public static string Cache => Directory.CreateDirectory(Path.Combine(Root, "data", "cache")).FullName;
+
     /// <summary>Muestra de mi voz (models/mi-voz.*) o null si no existe.</summary>
     public static string? VoiceSample =>
         new[] { "wav", "mp3", "m4a", "ogg", "flac" }

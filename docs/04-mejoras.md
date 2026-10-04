@@ -1,5 +1,28 @@
 # 04 – Posibles mejoras
 
+## Estado de implementación
+
+| # | Mejora | Estado |
+|---|---|---|
+| 1 | Pulsar para hablar | **Hecho** (probado: sin tecla no capta; al soltar, la frase llega en ~0.5 s) |
+| 2 | Frases de relleno con tu voz | **Hecho** dentro del banco de frases, con atajos Ctrl+Alt+Numpad1…9 |
+| – | Banco de respuestas preparadas (audio en caché) | **Hecho** |
+| 4 | Motor de voz adaptativo | Pendiente |
+| 5 | Acelerar «Mi voz» | Pendiente |
+| 6 | Calentar modelos al abrir | **Hecho** (el servicio de traducción arranca al abrir la app) |
+| 7 | GPU moderna | Inversión, a tu criterio |
+| 8 | Glosario ampliado | **Hecho** y editable (`tools/glossary.json`); falta cargar los términos de cada oferta |
+| 9 | Pronunciación de siglas | **Hecho con reglas por motor y solo casos verificados**; una regla general empeoraba algunos casos |
+| 10–12 | Contexto entre frases, modo calidad, aprendizaje del glosario | Pendiente |
+| 13 | Ventana compacta | **Hecho** (Ctrl+Alt+Numpad.) |
+| 14 | Perfiles por aplicación | Pendiente (se recuerdan los últimos ajustes) |
+| 15 | Aviso sonoro | Pendiente |
+| 16 | Botón de silencio | **Hecho** (Ctrl+Alt+Numpad0) |
+| 17 | Cambio de micrófono automático | Pendiente |
+| 3 | Voz en streaming real | Pendiente (el cambio de mayor impacto después de una GPU) |
+
+Además: nivelación automática del volumen enviado, botón «Iniciar todo», ajustes que se recuerdan, y «Copiar inglés» como plan B por chat.
+
 Ordenadas por impacto en el uso real (entrevistas y llamadas) frente al esfuerzo. Los tiempos de referencia vienen de las pruebas del documento 03.
 
 ## Para sentir menos retraso
